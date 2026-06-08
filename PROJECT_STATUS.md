@@ -10,7 +10,7 @@
 
 | Phase | 名称 | 状态 | 完成日期 |
 |:-----:|------|:----:|:--------:|
-| 1 | 基础设备接入 | ⬜ 未开始 | - |
+| 1 | 基础设备接入 | ✅ 已完成 | 2026-06-08 |
 | 2 | Spring Boot 后端 | ⬜ 未开始 | - |
 | 3 | 数据库建设 | ⬜ 未开始 | - |
 | 4 | 设备管理模块 | ⬜ 未开始 | - |
@@ -28,9 +28,9 @@
 
 ## 当前状态
 
-- **当前 Phase**：Phase 0（准备阶段）
+- **当前 Phase**：Phase 2（Spring Boot 后端）
 - **阻塞问题**：无
-- **下一步任务**：确定开发环境，开始 Phase 1（ESP32 基础设备接入）
+- **下一步任务**：搭建 Spring Boot 3 项目骨架，实现 MQTT 订阅服务和数据存储
 
 ---
 
@@ -59,10 +59,41 @@
 
 **遇到的问题：** 无
 
+**Git 提交：** `0839740` feat: ESP32温度采集与MQTT数据上报（Phase 1）
+
+**遇到的问题：** 无
+
 **明日计划：**
-- [ ] 初始化 Git 仓库
-- [ ] 搭建 ESP32 开发环境（PlatformIO）
-- [ ] 开始 Phase 1：编写 ESP32 温度采集 + MQTT 上报代码
+- [ ] 开始 Phase 2：搭建 Spring Boot 3 项目骨架
+
+---
+
+### 2026-06-08（第1天 — Phase 1 完成）
+
+**完成事项：**
+- [x] Phase 1 全部 5 个子任务完成
+- [x] 1.1 DS18B20 温度采集（30s周期）
+- [x] 1.2 DHT22 环境温湿度采集（60s周期）
+- [x] 1.3 WiFi 自动联网 + 自动重连
+- [x] 1.4 MQTT 连接 EMQX（含认证）
+- [x] 1.5 MQTT 数据上传（JSON格式）
+
+**Git 提交：** `0839740` feat: ESP32温度采集与MQTT数据上报（Phase 1）
+
+**文件清单：**
+- `esp32-firmware/platformio.ini` — PlatformIO 项目配置
+- `esp32-firmware/src/config.h` — WiFi/MQTT/引脚配置
+- `esp32-firmware/src/main.cpp` — 主程序（传感器采集 + MQTT上报）
+- `esp32-firmware/src/sensors.h/cpp` — DS18B20 + DHT22 驱动
+- `esp32-firmware/src/wifi_manager.h/cpp` — WiFi 自动重连
+- `esp32-firmware/src/mqtt_handler.h/cpp` — MQTT 连接与消息处理
+
+**遇到的问题：** 无
+
+**明日计划：**
+- [ ] 开始 Phase 2：搭建 Spring Boot 3 项目骨架
+- [ ] Phase 2.1：Maven 项目初始化 + MyBatis Plus
+- [ ] Phase 2.2：MQTT 订阅服务
 
 ---
 
