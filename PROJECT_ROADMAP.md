@@ -2,6 +2,7 @@
 
 > **最后更新**：2026-06-08
 > **配套文件**：`PROJECT_STATUS.md`（每日进度日志）
+> **下次恢复**：当前进度 4/11 Phase，下一步是 Phase 5（监控看板）
 
 ---
 
@@ -42,6 +43,15 @@
 | 11 | Docker部署 | ⬜ 未开始 | - | 0/6 |
 
 > 图例：⬜ 未开始 | 🔄 进行中 | ✅ 已完成 | ⏸️ 暂停
+
+### 已完成 Phase 摘要
+
+| Phase | 产出 | 关键文件 |
+|:-----:|------|----------|
+| 1 | ESP32 固件（DS18B20+DHT22+MQTT） | `esp32-firmware/src/` |
+| 2 | Spring Boot 后端骨架 + MQTT 订阅 + 数据入库 | `smartbrew-server/` |
+| 3 | V1 全部 10 张表 DDL + ER 图 | `schema.sql` + `数据库列表.md` |
+| 4 | 设备 REST API + 心跳超时 + 事件记录 | `DeviceController.java` 等 |
 
 ---
 

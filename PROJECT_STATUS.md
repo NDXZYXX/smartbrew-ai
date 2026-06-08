@@ -30,11 +30,11 @@
 
 - **当前 Phase**：Phase 5（监控看板）
 - **阻塞问题**：无
-- **下一步任务**：实时数据接口 + 历史数据接口 + Vue3 前端
+- **下一步任务**：实时数据接口 + 历史数据接口 + Vue3 前端页面
 
 ---
 
-## 文档清单（已完成）
+## 文档清单
 
 | 文档 | 路径 | 状态 |
 |------|------|:--:|
@@ -42,107 +42,127 @@
 | 数据库列表 | `数据库列表.md` | ✅ |
 | 项目路线图 | `PROJECT_ROADMAP.md` | ✅ |
 | 项目进度日志 | `PROJECT_STATUS.md` | ✅ |
+| 防失忆工作流程 | `防失忆工作流程.md` | ✅ |
+
+---
+
+## 项目结构（当前）
+
+```
+酒桶发酵/
+├── esp32-firmware/                      # Phase 1: ESP32固件
+│   ├── platformio.ini
+│   └── src/
+│       ├── config.h                     # WiFi/MQTT/引脚配置
+│       ├── main.cpp                     # 主程序（传感器调度+MQTT上报）
+│       ├── sensors.h / sensors.cpp       # DS18B20 + DHT22 驱动
+│       ├── wifi_manager.h / .cpp         # WiFi 自动重连
+│       └── mqtt_handler.h / .cpp         # MQTT 连接+JSON上报+心跳
+│
+├── smartbrew-server/                    # Phase 2-4: Spring Boot后端
+│   ├── pom.xml
+│   └── src/main/
+│       ├── resources/
+│       │   ├── application.yml           # 数据库/Redis/MQTT 配置
+│       │   └── db/schema.sql             # V1 全量DDL（10张表）
+│       └── java/com/smartbrew/smartbrew/
+│           ├── SmartBrewApplication.java  # @EnableScheduling
+│           ├── config/
+│           │   ├── MqttProperties.java
+│           │   ├── RedisConfig.java
+│           │   └── MyMetaObjectHandler.java
+│           ├── dto/
+│           │   ├── ApiResult.java         # 统一响应 {code,message,data}
+│           │   └── DeviceRegisterRequest.java
+│           ├── entity/
+│           │   ├── Device.java
+│           │   ├── SensorData.java
+│           │   ├── DeviceHeartbeat.java
+│           │   └── DeviceEvent.java
+│           ├── mapper/                    # 4个 Mapper 接口
+│           ├── service/
+│           │   ├── MqttSubscriberService.java  # MQTT订阅+入库+Redis
+│           │   ├── DeviceService.java          # 设备CRUD
+│           │   └── DeviceEventService.java     # 事件记录
+│           ├── task/
+│           │   └── HeartbeatTimeoutTask.java   # 心跳超时检测（@Scheduled）
+│           └── controller/
+│               └── DeviceController.java       # 4个REST接口
+│
+├── PROJECT_ROADMAP.md                   # 11个Phase路线图
+├── PROJECT_STATUS.md                    # 本文件
+├── 功能需求列表.md                       # F001~F028 完整规格
+├── 数据库列表.md                         # 20张表设计+ER图
+├── 防失忆工作流程.md                     # AI会话恢复模板
+└── .gitignore
+```
+
+---
+
+## 已完成的 API 接口
+
+| 方法 | 路径 | Phase | 功能 |
+|------|------|:-----:|------|
+| POST | `/api/device/register` | 4 | 设备注册 |
+| GET | `/api/device/list` | 4 | 设备列表（分页+搜索） |
+| GET | `/api/device/{deviceId}` | 4 | 设备详情 |
+| PUT | `/api/device/{deviceId}` | 4 | 更新设备信息 |
+
+---
+
+## Git 提交记录
+
+| 提交 | 说明 | Phase |
+|------|------|:-----:|
+| `b5233eb` | docs: Phase 4 完成，更新路线图与进度日志 | - |
+| `4e55664` | feat: 设备管理模块（Phase 4） | 4 |
+| `b4be3f7` | docs: Phase 2+3 完成，更新路线图与进度日志 | - |
+| `557d334` | feat: Spring Boot 3 + MQTT订阅服务（Phase 2） | 2+3 |
+| `5277dff` | docs: Phase 1 完成，更新路线图与进度日志 | - |
+| `0839740` | feat: ESP32温度采集与MQTT数据上报（Phase 1） | 1 |
 
 ---
 
 ## 每日日志
 
-### 2026-06-08（第0天 — 准备工作）
+### 2026-06-08（第0天 — 准备阶段）
 
 **完成事项：**
-- [x] 梳理功能需求列表（`功能需求列表.md`）
+- [x] 梳理功能需求列表（`功能需求列表.md`，28项功能规格）
 - [x] 设计完整数据库列表（`数据库列表.md`，20张表，含V1/V2/V3）
-- [x] 制定项目开发路线图（`PROJECT_ROADMAP.md`，11个Phase）
-- [x] 建立项目进度日志（本文件）
+- [x] 制定项目开发路线图（`PROJECT_ROADMAP.md`，11个Phase，38个子任务）
+- [x] 建立项目进度日志 + 防失忆工作流程
+- [x] Git 仓库初始化 + `.gitignore`
 
-**Git 提交：** 无（尚未初始化 Git 仓库）
-
-**遇到的问题：** 无
-
-**Git 提交：** `0839740` feat: ESP32温度采集与MQTT数据上报（Phase 1）
+**Git 提交：** 无（文档阶段，尚未提交）
 
 **遇到的问题：** 无
 
 **明日计划：**
-- [ ] 开始 Phase 2：搭建 Spring Boot 3 项目骨架
+- [ ] 搭建 ESP32 开发环境 + 开始 Phase 1
 
 ---
 
-### 2026-06-08（第1天 — Phase 1 完成）
+### 2026-06-08（第1天 — Phase 1~4 连续完成）
 
 **完成事项：**
-- [x] Phase 1 全部 5 个子任务完成
-- [x] 1.1 DS18B20 温度采集（30s周期）
-- [x] 1.2 DHT22 环境温湿度采集（60s周期）
-- [x] 1.3 WiFi 自动联网 + 自动重连
-- [x] 1.4 MQTT 连接 EMQX（含认证）
-- [x] 1.5 MQTT 数据上传（JSON格式）
+- [x] **Phase 1**：ESP32 固件（DS18B20 + DHT22 + WiFi + MQTT 上报）
+- [x] **Phase 2**：Spring Boot 3 项目骨架 + MQTT 订阅服务 + 数据入库 + Redis 缓存
+- [x] **Phase 3**：数据库 ER 图 + V1 全量 DDL（10张表 + 预置数据 + admin 账号）
+- [x] **Phase 4**：设备管理模块（注册/心跳超时/事件记录/列表查询 REST API）
 
-**Git 提交：** `0839740` feat: ESP32温度采集与MQTT数据上报（Phase 1）
-
-**文件清单：**
-- `esp32-firmware/platformio.ini` — PlatformIO 项目配置
-- `esp32-firmware/src/config.h` — WiFi/MQTT/引脚配置
-- `esp32-firmware/src/main.cpp` — 主程序（传感器采集 + MQTT上报）
-- `esp32-firmware/src/sensors.h/cpp` — DS18B20 + DHT22 驱动
-- `esp32-firmware/src/wifi_manager.h/cpp` — WiFi 自动重连
-- `esp32-firmware/src/mqtt_handler.h/cpp` — MQTT 连接与消息处理
+**Git 提交：**
+- `0839740` feat: ESP32温度采集与MQTT数据上报（Phase 1）
+- `5277dff` docs: Phase 1 完成
+- `557d334` feat: Spring Boot 3 + MQTT订阅服务（Phase 2+3）
+- `b4be3f7` docs: Phase 2+3 完成
+- `4e55664` feat: 设备管理模块（Phase 4）
+- `b5233eb` docs: Phase 4 完成
 
 **遇到的问题：** 无
 
 **明日计划：**
-- [ ] 开始 Phase 5：实时数据接口 + 历史曲线接口 + Vue3 前端
-
----
-
-### 2026-06-08（第1天续 — Phase 4 完成）
-
-**完成事项：**
-- [x] Phase 4 全部 4 个子任务完成
-- [x] 4.1 POST /api/device/register — 设备注册接口
-- [x] 4.2 HeartbeatTimeoutTask — 心跳超时检测（120s → 离线）
-- [x] 4.3 DeviceEventService — 设备事件记录
-- [x] 4.4 GET /api/device/list — 设备列表 + 在线状态（Redis辅助）
-
-**Git 提交：** `4e55664` feat: 设备管理模块
-
-**新增文件：**
-- `dto/ApiResult.java` — 统一响应封装
-- `dto/DeviceRegisterRequest.java` — 注册请求DTO
-- `service/DeviceService.java` — 设备业务逻辑
-- `service/DeviceEventService.java` — 事件记录服务
-- `task/HeartbeatTimeoutTask.java` — 心跳超时定时任务
-- `controller/DeviceController.java` — REST API（4个接口）
-
-**遇到的问题：** 无
-
-**明日计划：**
-- [ ] 开始 Phase 5：实时数据接口 + 历史曲线接口 + Vue3 前端
-
----
-
-### 2026-06-08（第1天续 — Phase 2 + Phase 3 完成）
-
-**完成事项：**
-- [x] Phase 2 全部 4 个子任务完成（Spring Boot 3 + MQTT 订阅 + 数据入库 + Redis 缓存）
-- [x] Phase 3 全部 2 个子任务完成（ER 图 + V1 全量 DDL）
-
-**Git 提交：** `557d334` feat: Spring Boot 3 项目骨架 + MQTT订阅服务（Phase 2）
-
-**文件清单：**
-- `smartbrew-server/pom.xml` — Maven 依赖管理
-- `smartbrew-server/src/main/java/.../SmartBrewApplication.java` — 启动类
-- `smartbrew-server/src/main/java/.../config/` — MQTT/Redis/MyBatis Plus 配置
-- `smartbrew-server/src/main/java/.../entity/` — 4个实体类
-- `smartbrew-server/src/main/java/.../mapper/` — 4个Mapper接口
-- `smartbrew-server/src/main/java/.../service/MqttSubscriberService.java` — MQTT 订阅+入库+缓存
-- `smartbrew-server/src/main/resources/application.yml` — 应用配置
-- `smartbrew-server/src/main/resources/db/schema.sql` — V1 完整DDL
-
-**遇到的问题：** 无
-
-**明日计划：**
-- [ ] 开始 Phase 4：设备注册接口 + 心跳超时检测 + 设备列表查询
+- [ ] 开始 Phase 5：监控看板（实时数据接口 + 历史曲线接口 + Vue3 前端）
 
 ---
 
