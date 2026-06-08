@@ -11,8 +11,8 @@
 | Phase | 名称 | 状态 | 完成日期 |
 |:-----:|------|:----:|:--------:|
 | 1 | 基础设备接入 | ✅ 已完成 | 2026-06-08 |
-| 2 | Spring Boot 后端 | ⬜ 未开始 | - |
-| 3 | 数据库建设 | ⬜ 未开始 | - |
+| 2 | Spring Boot 后端 | ✅ 已完成 | 2026-06-08 |
+| 3 | 数据库建设 | ✅ 已完成 | 2026-06-08 |
 | 4 | 设备管理模块 | ⬜ 未开始 | - |
 | 5 | 监控看板 | ⬜ 未开始 | - |
 | 6 | 告警系统 | ⬜ 未开始 | - |
@@ -28,9 +28,9 @@
 
 ## 当前状态
 
-- **当前 Phase**：Phase 2（Spring Boot 后端）
+- **当前 Phase**：Phase 4（设备管理模块）
 - **阻塞问题**：无
-- **下一步任务**：搭建 Spring Boot 3 项目骨架，实现 MQTT 订阅服务和数据存储
+- **下一步任务**：设备注册接口、心跳超时检测、设备列表查询
 
 ---
 
@@ -91,9 +91,32 @@
 **遇到的问题：** 无
 
 **明日计划：**
-- [ ] 开始 Phase 2：搭建 Spring Boot 3 项目骨架
-- [ ] Phase 2.1：Maven 项目初始化 + MyBatis Plus
-- [ ] Phase 2.2：MQTT 订阅服务
+- [ ] 开始 Phase 4：设备注册接口 + 心跳超时检测 + 设备列表查询
+
+---
+
+### 2026-06-08（第1天续 — Phase 2 + Phase 3 完成）
+
+**完成事项：**
+- [x] Phase 2 全部 4 个子任务完成（Spring Boot 3 + MQTT 订阅 + 数据入库 + Redis 缓存）
+- [x] Phase 3 全部 2 个子任务完成（ER 图 + V1 全量 DDL）
+
+**Git 提交：** `557d334` feat: Spring Boot 3 项目骨架 + MQTT订阅服务（Phase 2）
+
+**文件清单：**
+- `smartbrew-server/pom.xml` — Maven 依赖管理
+- `smartbrew-server/src/main/java/.../SmartBrewApplication.java` — 启动类
+- `smartbrew-server/src/main/java/.../config/` — MQTT/Redis/MyBatis Plus 配置
+- `smartbrew-server/src/main/java/.../entity/` — 4个实体类
+- `smartbrew-server/src/main/java/.../mapper/` — 4个Mapper接口
+- `smartbrew-server/src/main/java/.../service/MqttSubscriberService.java` — MQTT 订阅+入库+缓存
+- `smartbrew-server/src/main/resources/application.yml` — 应用配置
+- `smartbrew-server/src/main/resources/db/schema.sql` — V1 完整DDL
+
+**遇到的问题：** 无
+
+**明日计划：**
+- [ ] 开始 Phase 4：设备注册接口 + 心跳超时检测 + 设备列表查询
 
 ---
 
