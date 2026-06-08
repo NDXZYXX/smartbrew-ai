@@ -13,7 +13,7 @@
 | 1 | 基础设备接入 | ✅ 已完成 | 2026-06-08 |
 | 2 | Spring Boot 后端 | ✅ 已完成 | 2026-06-08 |
 | 3 | 数据库建设 | ✅ 已完成 | 2026-06-08 |
-| 4 | 设备管理模块 | ⬜ 未开始 | - |
+| 4 | 设备管理模块 | ✅ 已完成 | 2026-06-08 |
 | 5 | 监控看板 | ⬜ 未开始 | - |
 | 6 | 告警系统 | ⬜ 未开始 | - |
 | 7 | 设备控制 | ⬜ 未开始 | - |
@@ -28,9 +28,9 @@
 
 ## 当前状态
 
-- **当前 Phase**：Phase 4（设备管理模块）
+- **当前 Phase**：Phase 5（监控看板）
 - **阻塞问题**：无
-- **下一步任务**：设备注册接口、心跳超时检测、设备列表查询
+- **下一步任务**：实时数据接口 + 历史数据接口 + Vue3 前端
 
 ---
 
@@ -91,7 +91,33 @@
 **遇到的问题：** 无
 
 **明日计划：**
-- [ ] 开始 Phase 4：设备注册接口 + 心跳超时检测 + 设备列表查询
+- [ ] 开始 Phase 5：实时数据接口 + 历史曲线接口 + Vue3 前端
+
+---
+
+### 2026-06-08（第1天续 — Phase 4 完成）
+
+**完成事项：**
+- [x] Phase 4 全部 4 个子任务完成
+- [x] 4.1 POST /api/device/register — 设备注册接口
+- [x] 4.2 HeartbeatTimeoutTask — 心跳超时检测（120s → 离线）
+- [x] 4.3 DeviceEventService — 设备事件记录
+- [x] 4.4 GET /api/device/list — 设备列表 + 在线状态（Redis辅助）
+
+**Git 提交：** `4e55664` feat: 设备管理模块
+
+**新增文件：**
+- `dto/ApiResult.java` — 统一响应封装
+- `dto/DeviceRegisterRequest.java` — 注册请求DTO
+- `service/DeviceService.java` — 设备业务逻辑
+- `service/DeviceEventService.java` — 事件记录服务
+- `task/HeartbeatTimeoutTask.java` — 心跳超时定时任务
+- `controller/DeviceController.java` — REST API（4个接口）
+
+**遇到的问题：** 无
+
+**明日计划：**
+- [ ] 开始 Phase 5：实时数据接口 + 历史曲线接口 + Vue3 前端
 
 ---
 
