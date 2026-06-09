@@ -2,7 +2,7 @@
 
 > **作用**：记录每日开发的完成情况，防止AI失忆或上下文丢失后无法恢复进度。
 > **使用规则**：每天开发结束后，在此文件末尾追加当日日志。同时更新 `PROJECT_ROADMAP.md` 中对应 Phase 的状态。
-> **最后更新**：2026-06-08
+> **最后更新**：2026-06-09
 
 ---
 
@@ -14,7 +14,7 @@
 | 2 | Spring Boot 后端 | ✅ 已完成 | 2026-06-08 |
 | 3 | 数据库建设 | ✅ 已完成 | 2026-06-08 |
 | 4 | 设备管理模块 | ✅ 已完成 | 2026-06-08 |
-| 5 | 监控看板 | ⬜ 未开始 | - |
+| 5 | 监控看板 | ✅ 已完成 | 2026-06-09 |
 | 6 | 告警系统 | ⬜ 未开始 | - |
 | 7 | 设备控制 | ⬜ 未开始 | - |
 | 8 | 自动温控 | ⬜ 未开始 | - |
@@ -28,9 +28,9 @@
 
 ## 当前状态
 
-- **当前 Phase**：Phase 5（监控看板）
+- **当前 Phase**：Phase 6（告警系统）
 - **阻塞问题**：无
-- **下一步任务**：实时数据接口 + 历史数据接口 + Vue3 前端页面
+- **下一步任务**：告警规则引擎 + 告警记录 + 告警中心页面
 
 ---
 
@@ -73,7 +73,8 @@
 │           │   └── MyMetaObjectHandler.java
 │           ├── dto/
 │           │   ├── ApiResult.java         # 统一响应 {code,message,data}
-│           │   └── DeviceRegisterRequest.java
+│           │   ├── DeviceRegisterRequest.java
+│           │   └── SensorDataVO.java        # Phase 5: 传感器数据VO
 │           ├── entity/
 │           │   ├── Device.java
 │           │   ├── SensorData.java
@@ -83,11 +84,28 @@
 │           ├── service/
 │           │   ├── MqttSubscriberService.java  # MQTT订阅+入库+Redis
 │           │   ├── DeviceService.java          # 设备CRUD
-│           │   └── DeviceEventService.java     # 事件记录
+│           │   ├── DeviceEventService.java     # 事件记录
+│           │   └── SensorDataService.java       # Phase 5: 传感器数据查询
 │           ├── task/
 │           │   └── HeartbeatTimeoutTask.java   # 心跳超时检测（@Scheduled）
 │           └── controller/
-│               └── DeviceController.java       # 4个REST接口
+│               └── DeviceController.java       # 6个REST接口
+
+├── smartbrew-web/                        # Phase 5: Vue3前端
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js                    # Dev Server:3000 + proxy → :8080
+│   └── src/
+│       ├── main.js                       # 入口，注册Element Plus + Router
+│       ├── App.vue                       # Container布局 + 导航
+│       ├── router/index.js               # / → Dashboard, /history → HistoryChart
+│       ├── api/index.js                  # Axios封装，4个API方法
+│       ├── views/
+│       │   ├── Dashboard.vue             # 实时监控面板（仪表盘+数据卡片+30s刷新）
+│       │   └── HistoryChart.vue          # 温湿度历史曲线（双Y轴+缩放）
+│       └── components/
+│           ├── DeviceStatusCard.vue       # 设备信息卡片
+│           └── TempHumidityGauge.vue      # ECharts 仪表盘组件
 │
 ├── PROJECT_ROADMAP.md                   # 11个Phase路线图
 ├── PROJECT_STATUS.md                    # 本文件
@@ -107,6 +125,8 @@
 | GET | `/api/device/list` | 4 | 设备列表（分页+搜索） |
 | GET | `/api/device/{deviceId}` | 4 | 设备详情 |
 | PUT | `/api/device/{deviceId}` | 4 | 更新设备信息 |
+| GET | `/api/device/latest` | 5 | 设备最新传感器数据（Redis+DB fallback） |
+| GET | `/api/device/history` | 5 | 设备历史传感器数据（分页） |
 
 ---
 
@@ -163,6 +183,27 @@
 
 **明日计划：**
 - [ ] 开始 Phase 5：监控看板（实时数据接口 + 历史曲线接口 + Vue3 前端）
+
+---
+
+### 2026-06-09（第2天 — Phase 5 完成）
+
+**完成事项：**
+- [x] **Phase 5**：监控看板
+  - [x] 5.1 实时数据接口 `GET /api/device/latest`（Redis Hash 优先 → DB fallback）
+  - [x] 5.2 历史数据接口 `GET /api/device/history`（分页 + 时间范围查询）
+  - [x] 5.3 Vue3 实时监控面板（Dashboard.vue — 设备选择器 + ECharts 仪表盘 + 数据卡片 + 30s 自动刷新）
+  - [x] 5.4 ECharts 温度 & 湿度历史曲线（HistoryChart.vue — 双 Y 轴折线图 + 时间范围选择 + 缩放）
+  - [x] 创建 `smartbrew-web/` 项目（Vite + Vue3 + Element Plus + ECharts + Axios + Vue Router + dayjs）
+  - [x] 新增后端文件：`SensorDataVO.java`、`SensorDataService.java`
+  - [x] 修改 `DeviceController.java`：新增 `latest()` 和 `history()` 两个接口
+
+**Git 提交：** 待提交
+
+**遇到的问题：** 无
+
+**明日计划：**
+- [ ] 开始 Phase 6：告警系统（告警规则引擎 + 告警记录 + 告警中心页面）
 
 ---
 
