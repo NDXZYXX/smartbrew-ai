@@ -3,6 +3,7 @@ package com.smartbrew.smartbrew.task;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.smartbrew.smartbrew.entity.Device;
 import com.smartbrew.smartbrew.mapper.DeviceMapper;
+import com.smartbrew.smartbrew.service.AlarmService;
 import com.smartbrew.smartbrew.service.DeviceEventService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +24,13 @@ public class HeartbeatTimeoutTask {
 
     private final DeviceMapper deviceMapper;
     private final DeviceEventService eventService;
+    private final AlarmService alarmService;
 
-    public HeartbeatTimeoutTask(DeviceMapper deviceMapper, DeviceEventService eventService) {
+    public HeartbeatTimeoutTask(DeviceMapper deviceMapper, DeviceEventService eventService,
+                                 AlarmService alarmService) {
         this.deviceMapper = deviceMapper;
         this.eventService = eventService;
+        this.alarmService = alarmService;
     }
 
     @Scheduled(fixedRate = 60000) // 每 60 秒执行
@@ -53,6 +57,9 @@ public class HeartbeatTimeoutTask {
             eventService.record(device.getDeviceId(), "DEVICE_OFFLINE",
                     "WARN", "设备离线",
                     "心跳超时（>120s），设备自动标记为离线", null);
+
+            // 产生离线告警
+            alarmService.checkOffline(device.getDeviceId());
         }
 
         if (!onlineDevices.isEmpty()) {

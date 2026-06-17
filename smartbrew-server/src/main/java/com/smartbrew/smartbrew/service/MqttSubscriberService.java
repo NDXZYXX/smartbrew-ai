@@ -36,6 +36,7 @@ public class MqttSubscriberService implements CommandLineRunner {
     private final DeviceEventMapper eventMapper;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final AlarmService alarmService;
 
     private MqttClient client;
 
@@ -45,7 +46,8 @@ public class MqttSubscriberService implements CommandLineRunner {
                                   DeviceHeartbeatMapper heartbeatMapper,
                                   DeviceEventMapper eventMapper,
                                   RedisTemplate<String, Object> redisTemplate,
-                                  ObjectMapper objectMapper) {
+                                  ObjectMapper objectMapper,
+                                  AlarmService alarmService) {
         this.props = props;
         this.sensorDataMapper = sensorDataMapper;
         this.deviceMapper = deviceMapper;
@@ -53,6 +55,7 @@ public class MqttSubscriberService implements CommandLineRunner {
         this.eventMapper = eventMapper;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
+        this.alarmService = alarmService;
     }
 
     @Override
@@ -173,6 +176,9 @@ public class MqttSubscriberService implements CommandLineRunner {
             sensorDataMapper.insert(data);
             log.debug("传感器数据入库: device={} tank={}℃", deviceId, data.getTankTemperature());
 
+            // 检查温度告警
+            alarmService.checkTemperature(deviceId, data);
+
             // 更新 Redis 最新数据缓存
             cacheLatestSensorData(deviceId, data);
 
@@ -219,6 +225,9 @@ public class MqttSubscriberService implements CommandLineRunner {
             // Redis 在线标记（TTL=120s）
             redisTemplate.opsForValue().set(
                     "device:online:" + deviceId, "1", 120, TimeUnit.SECONDS);
+
+            // 设备上线，自动清除离线告警
+            alarmService.clearOfflineAlarms(deviceId);
 
         } catch (Exception e) {
             log.error("心跳解析失败: device={} payload={}", deviceId, payload, e);
