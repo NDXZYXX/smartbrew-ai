@@ -42,11 +42,10 @@ public class ControlService {
             throw new IllegalStateException("设备不在线，无法下发指令: " + deviceId);
         }
 
-        long timestamp = System.currentTimeMillis();
         String mqttMsgId = null;
 
         try {
-            mqttMsgId = mqttService.publishControl(deviceId, target, command, timestamp);
+            mqttMsgId = mqttService.publishControl(deviceId, target, command);
         } catch (Exception e) {
             log.error("MQTT控制指令下发失败: device={} target={} command={}", deviceId, target, command, e);
         }
@@ -64,5 +63,39 @@ public class ControlService {
 
         controlLogMapper.insert(logRecord);
         log.info("控制指令已记录: device={} target={} command={} msgId={}", deviceId, target, command, mqttMsgId);
+    }
+
+    /**
+     * 自动温控下发的控制指令
+     * 与 sendControl() 的区别：
+     *   - 不抛出异常（优雅降级，仅记录日志）
+     *   - triggerSource 设为 "AUTO"
+     *   - triggerReason 包含实际温度值和阈值的详细信息
+     *   - 跳过在线状态检查（离线时仍记录日志，executeStatus=3）
+     */
+    public void sendAutoControl(String deviceId, String target, String command, String reason) {
+        String mqttMsgId = null;
+        Integer executeStatus;
+
+        try {
+            mqttMsgId = mqttService.publishControl(deviceId, target, command);
+            executeStatus = 0;
+        } catch (Exception e) {
+            log.warn("自动温控MQTT下发失败: device={} target={} command={}", deviceId, target, command, e);
+            executeStatus = 3;
+        }
+
+        DeviceControlLog logRecord = new DeviceControlLog();
+        logRecord.setDeviceId(deviceId);
+        logRecord.setControlTarget(target);
+        logRecord.setCommand(command);
+        logRecord.setTriggerSource("AUTO");
+        logRecord.setTriggerReason(reason);
+        logRecord.setMqttMsgId(mqttMsgId);
+        logRecord.setExecuteStatus(executeStatus);
+
+        controlLogMapper.insert(logRecord);
+        log.info("自动温控已记录: device={} target={} command={} status={} reason={}",
+                deviceId, target, command, executeStatus, reason);
     }
 }

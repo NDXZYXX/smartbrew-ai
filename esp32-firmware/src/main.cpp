@@ -37,6 +37,7 @@ static void setFan(int state) {
     g_fanState = state;
     digitalWrite(PIN_FAN_RELAY, state ? HIGH : LOW);
     Serial.printf("[GPIO] 风扇 %s\n", state ? "开" : "关");
+    mqtt.publishStatus(g_fanState, g_heaterState);
 }
 
 static void setHeater(int state) {
@@ -47,6 +48,7 @@ static void setHeater(int state) {
     g_heaterState = state;
     digitalWrite(PIN_HEATER_RELAY, state ? HIGH : LOW);
     Serial.printf("[GPIO] 加热 %s\n", state ? "开" : "关");
+    mqtt.publishStatus(g_fanState, g_heaterState);
 }
 
 // ---------- MQTT 控制指令回调 ----------

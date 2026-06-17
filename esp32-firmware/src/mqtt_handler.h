@@ -27,6 +27,8 @@ public:
     // 发布心跳
     bool publishHeartbeat(int32_t rssi, uint32_t freeHeap,
                           const char* firmwareVer, const char* ip);
+    // 发布 GPIO 状态反馈
+    bool publishStatus(int fanState, int heaterState);
 
     // 控制指令回调
     void setControlCallback(ControlCallback cb);

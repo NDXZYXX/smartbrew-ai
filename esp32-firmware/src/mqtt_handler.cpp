@@ -114,6 +114,23 @@ bool MQTTHandler::publishHeartbeat(int32_t rssi, uint32_t freeHeap,
     return true;
 }
 
+bool MQTTHandler::publishStatus(int fanState, int heaterState) {
+    JsonDocument doc;
+    doc["fan"]    = fanState;
+    doc["heater"] = heaterState;
+
+    char buffer[128];
+    size_t n = serializeJson(doc, buffer);
+    buffer[n] = '\0';
+
+    if (!_client.publish(_topicStatus, buffer)) {
+        Serial.println("[MQTT] 状态发布失败");
+        return false;
+    }
+    Serial.printf("[MQTT] GPIO状态已发布: %s\n", buffer);
+    return true;
+}
+
 void MQTTHandler::setControlCallback(ControlCallback cb) {
     _controlCb = cb;
 }

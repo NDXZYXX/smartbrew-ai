@@ -37,6 +37,7 @@ public class MqttSubscriberService implements CommandLineRunner {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
     private final AlarmService alarmService;
+    private final TemperatureControlService temperatureControlService;
 
     private MqttClient client;
 
@@ -47,7 +48,8 @@ public class MqttSubscriberService implements CommandLineRunner {
                                   DeviceEventMapper eventMapper,
                                   RedisTemplate<String, Object> redisTemplate,
                                   ObjectMapper objectMapper,
-                                  AlarmService alarmService) {
+                                  AlarmService alarmService,
+                                  TemperatureControlService temperatureControlService) {
         this.props = props;
         this.sensorDataMapper = sensorDataMapper;
         this.deviceMapper = deviceMapper;
@@ -56,6 +58,7 @@ public class MqttSubscriberService implements CommandLineRunner {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
         this.alarmService = alarmService;
+        this.temperatureControlService = temperatureControlService;
     }
 
     @Override
@@ -179,6 +182,9 @@ public class MqttSubscriberService implements CommandLineRunner {
             // 检查温度告警
             alarmService.checkTemperature(deviceId, data);
 
+            // 自动温控评估
+            temperatureControlService.evaluate(deviceId, data);
+
             // 更新 Redis 最新数据缓存
             cacheLatestSensorData(deviceId, data);
 
@@ -253,14 +259,13 @@ public class MqttSubscriberService implements CommandLineRunner {
      * @param deviceId 设备ID
      * @param target 控制目标 (FAN/HEATER)
      * @param command 指令 (ON/OFF)
-     * @param timestamp 时间戳
      * @return MQTT 消息ID
      */
-    public String publishControl(String deviceId, String target, String command, long timestamp) throws MqttException {
+    public String publishControl(String deviceId, String target, String command) throws MqttException {
         String topic = "smartbrew/device/" + deviceId + "/control";
         String payload = String.format(
-                "{\"target\":\"%s\",\"command\":\"%s\",\"timestamp\":%d}",
-                target, command, timestamp);
+                "{\"command\":\"%s\",\"value\":\"%s\"}",
+                target, command);
 
         MqttMessage msg = new MqttMessage(payload.getBytes());
         msg.setQos(1);
