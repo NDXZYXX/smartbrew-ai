@@ -31,3 +31,5 @@ export const sendControl = (deviceId, data) => http.post(`/device/${deviceId}/co
 export const triggerAiAnalysis = (data) => http.post('/ai/analyze', data)
 export const getAiAnalysisList = (params) => http.get('/ai/list', { params })
 export const getAiAnalysisDetail = (id) => http.get(`/ai/${id}`)
+
+export const askKnowledge = (question) => http.post('/knowledge/ask', { question })
