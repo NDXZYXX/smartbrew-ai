@@ -18,7 +18,7 @@
 | 6 | 告警系统 | ✅ 已完成 | 2026-06-17 |
 | 7 | 设备控制 | ✅ 已完成 | 2026-06-17 |
 | 8 | 自动温控 | ✅ 已完成 | 2026-06-17 |
-| 9 | AI分析 | ⬜ 未开始 | - |
+| 9 | AI分析 | ✅ 已完成 | 2026-06-17 |
 | 10 | 知识库 | ⬜ 未开始 | - |
 | 11 | Docker部署 | ⬜ 未开始 | - |
 
@@ -28,9 +28,9 @@
 
 ## 当前状态
 
-- **当前 Phase**：Phase 9（AI分析）
+- **当前 Phase**：Phase 10（知识库）
 - **阻塞问题**：无
-- **下一步任务**：DeepSeek API 封装 + AI 分析记录存储与展示
+- **下一步任务**：编写知识库Markdown文件 + 知识库检索 + DeepSeek问答接口
 
 ---
 
@@ -70,13 +70,17 @@
 │           ├── config/
 │           │   ├── MqttProperties.java
 │           │   ├── RedisConfig.java
-│           │   └── MyMetaObjectHandler.java
+│           │   ├── MyMetaObjectHandler.java
+│           │   ├── AiProperties.java         # Phase 9: AI配置属性绑定
+│           │   └── AiConfig.java             # Phase 9: RestTemplate Bean
 │           ├── dto/
 │           │   ├── ApiResult.java         # 统一响应 {code,message,data}
 │           │   ├── DeviceRegisterRequest.java
 │           │   ├── SensorDataVO.java        # Phase 5: 传感器数据VO
 │           │   ├── AlarmRecordVO.java       # Phase 6: 告警记录VO
-│           │   └── ControlRequest.java      # Phase 7: 控制请求DTO
+│           │   ├── ControlRequest.java      # Phase 7: 控制请求DTO
+│           │   ├── AiAnalysisRecordVO.java  # Phase 9: AI分析记录VO
+│           │   └── AiAnalysisRequest.java   # Phase 9: AI分析请求DTO
 │           ├── entity/
 │           │   ├── Device.java
 │           │   ├── SensorData.java
@@ -85,7 +89,8 @@
 │           │   ├── AlarmRecord.java         # Phase 6: 告警记录实体
 │           │   ├── SystemConfig.java         # Phase 6: 系统配置实体
 │           │   └── DeviceControlLog.java    # Phase 7: 设备控制日志实体
-│           ├── mapper/                    # 7个 Mapper 接口
+│           │   └── AiAnalysisRecord.java    # Phase 9: AI分析记录实体
+│           ├── mapper/                    # 8个 Mapper 接口
 │           ├── service/
 │           │   ├── MqttSubscriberService.java  # MQTT订阅+入库+Redis+告警触发+控制发布
 │           │   ├── DeviceService.java          # 设备CRUD
@@ -94,12 +99,16 @@
 │           │   ├── AlarmService.java            # Phase 6: 告警规则引擎+记录
 │           │   ├── ControlService.java          # Phase 7: 控制指令下发+日志 + sendAutoControl
 │           │   └── TemperatureControlService.java # Phase 8: 自动温控规则引擎
+│           │   ├── DeepSeekClient.java          # Phase 9: DeepSeek API HTTP封装
+│           │   └── AiService.java               # Phase 9: AI分析核心业务
 │           ├── task/
 │           │   └── HeartbeatTimeoutTask.java   # 心跳超时检测+离线告警（@Scheduled）
+│           │   └── AiScheduledTask.java        # Phase 9: AI定时分析任务（@Scheduled）
 │           └── controller/
 │               ├── DeviceController.java       # 6个REST接口
 │               ├── AlarmController.java        # Phase 6: 告警列表+清除接口
-│               └── ControlController.java      # Phase 7: 设备控制接口
+│               ├── ControlController.java      # Phase 7: 设备控制接口
+│               └── AiController.java           # Phase 9: AI分析REST API
 
 ├── smartbrew-web/                        # Phase 5: Vue3前端
 │   ├── index.html
@@ -115,6 +124,7 @@
 │       │   ├── HistoryChart.vue          # 温湿度历史曲线（双Y轴+缩放）
 │       │   ├── AlarmCenter.vue           # Phase 6: 告警中心（筛选+表格+分页+清除）
 │       │   └── ControlPanel.vue          # Phase 7: 控制面板（风扇/加热开关+操作记录）
+│       │   └── AiAnalysis.vue            # Phase 9: AI分析页面（触发分析+记录列表+详情）
 │       └── components/
 │           ├── DeviceStatusCard.vue       # 设备信息卡片
 │           └── TempHumidityGauge.vue      # ECharts 仪表盘组件
@@ -142,6 +152,9 @@
 | GET | `/api/alarm/list` | 6 | 告警列表（分页+筛选） |
 | PUT | `/api/alarm/{alarmId}/clear` | 6 | 手动清除告警 |
 | POST | `/api/device/{deviceId}/control` | 7 | 设备控制指令下发（FAN/HEATER ON/OFF） |
+| POST | `/api/ai/analyze` | 9 | 手动触发 AI 分析 |
+| GET | `/api/ai/list` | 9 | AI 分析记录列表（分页+筛选） |
+| GET | `/api/ai/{id}` | 9 | AI 分析记录详情 |
 
 ---
 
@@ -151,6 +164,7 @@
 |------|------|:-----:|
 | `f28f5c1` | feat: Vue3控制面板 — 风扇/加热开关+操作记录（Phase 7.2） | 7 |
 | `c97b961` | feat: 设备控制 — MQTT指令下发接口+控制日志（Phase 7.1） | 7 |
+| `da27aa9` | docs: Phase 6 完成，更新路线图/进度日志/防失忆流程 | - |
 | `da27aa9` | docs: Phase 6 完成，更新路线图/进度日志/防失忆流程 | - |
 | `1bbbe02` | feat: Vue3告警中心页面 — 筛选+表格+分页+清除（Phase 6.3） | 6 |
 | `17b696b` | feat: 告警系统 — 规则引擎+告警API+Vue3告警中心（Phase 6） | 6 |
@@ -299,6 +313,57 @@
 
 **明日计划：**
 - [ ] 开始 Phase 9：AI分析（DeepSeek API 封装 + AI 分析记录存储与展示）
+
+---
+
+**明日计划：**
+- [ ] 开始 Phase 10：知识库（编写知识库Markdown + 知识库检索 + DeepSeek问答）
+
+---
+
+### 2026-06-17（第3天续3 — Phase 9 完成）
+
+**完成事项：**
+- [x] **Phase 9**：AI分析
+  - [x] 9.1 DeepSeek API 调用封装 — `DeepSeekClient.java`（RestTemplate + Bearer Auth + Chat/Response/Usage 内嵌类）
+  - [x] 9.2 AI 分析结果存储 + 查询接口 — `AiService.java`（Prompt构建 + 趋势计算 + API调用 + JSON解析 + 回退处理）+ `AiController.java`（POST /api/ai/analyze + GET /api/ai/list + GET /api/ai/{id}）
+  - [x] 9.3 Vue3 AI 分析页面 — `AiAnalysis.vue`（筛选栏 + 分析记录表格 + 触发分析Dialog + 详情Dialog + 30s轮询）
+  - [x] 配置类 — `AiProperties.java`（@ConfigurationProperties ai.deepseek）+ `AiConfig.java`（RestTemplate Bean 30s/120s超时）
+  - [x] 实体/Mapper/DTO — `AiAnalysisRecord.java` + `AiAnalysisRecordMapper.java` + `AiAnalysisRecordVO.java` + `AiAnalysisRequest.java`
+  - [x] 定时任务 — `AiScheduledTask.java`（@Scheduled 每小时分析全部在线设备，>15min旧数据跳过，异常隔离）
+  - [x] 修改 `application.yml`：新增 ai.deepseek 配置段（api-key/base-url/model）
+  - [x] 修改前端 `App.vue` / `router/index.js` / `api/index.js`：新增 AI 分析导航菜单、路由、API
+
+**新增文件（12个）：**
+| 文件 | 说明 |
+|------|------|
+| `config/AiProperties.java` | AI 配置属性绑定（ai.deepseek） |
+| `config/AiConfig.java` | RestTemplate Bean |
+| `entity/AiAnalysisRecord.java` | ai_analysis_record 表实体 |
+| `mapper/AiAnalysisRecordMapper.java` | MyBatis-Plus Mapper |
+| `dto/AiAnalysisRecordVO.java` | 展示 VO |
+| `dto/AiAnalysisRequest.java` | 请求 DTO（@Validated） |
+| `service/DeepSeekClient.java` | DeepSeek API HTTP 封装 |
+| `service/AiService.java` | AI 分析核心业务（Prompt + API + 解析 + 存储） |
+| `controller/AiController.java` | REST API（analyze / list / detail） |
+| `task/AiScheduledTask.java` | 每小时自动分析 |
+| `views/AiAnalysis.vue` | Vue3 AI 分析页面 |
+
+**修改文件（4个）：**
+| 文件 | 变更 |
+|------|------|
+| `application.yml` | 新增 ai.deepseek 配置段 |
+| `api/index.js` | 新增 3 个 AI API 函数 |
+| `router/index.js` | 新增 /ai 路由 |
+| `App.vue` | 新增 "AI 分析" 菜单项 |
+
+**Git 提交：**
+- 待提交
+
+**遇到的问题：** 无
+
+**明日计划：**
+- [ ] 开始 Phase 10：知识库
 
 ---
 
