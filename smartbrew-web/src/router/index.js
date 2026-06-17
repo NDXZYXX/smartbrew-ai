@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Dashboard from '../views/Dashboard.vue'
 import HistoryChart from '../views/HistoryChart.vue'
+import AlarmCenter from '../views/AlarmCenter.vue'
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
-  { path: '/history', name: 'HistoryChart', component: HistoryChart }
+  { path: '/history', name: 'HistoryChart', component: HistoryChart },
+  { path: '/alarms', name: 'AlarmCenter', component: AlarmCenter }
 ]
 
 const router = createRouter({
