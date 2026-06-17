@@ -2,7 +2,7 @@
 
 > **作用**：记录每日开发的完成情况，防止AI失忆或上下文丢失后无法恢复进度。
 > **使用规则**：每天开发结束后，在此文件末尾追加当日日志。同时更新 `PROJECT_ROADMAP.md` 中对应 Phase 的状态。
-> **最后更新**：2026-06-09
+> **最后更新**：2026-06-17
 
 ---
 
@@ -15,7 +15,7 @@
 | 3 | 数据库建设 | ✅ 已完成 | 2026-06-08 |
 | 4 | 设备管理模块 | ✅ 已完成 | 2026-06-08 |
 | 5 | 监控看板 | ✅ 已完成 | 2026-06-09 |
-| 6 | 告警系统 | ⬜ 未开始 | - |
+| 6 | 告警系统 | ✅ 已完成 | 2026-06-17 |
 | 7 | 设备控制 | ⬜ 未开始 | - |
 | 8 | 自动温控 | ⬜ 未开始 | - |
 | 9 | AI分析 | ⬜ 未开始 | - |
@@ -28,9 +28,9 @@
 
 ## 当前状态
 
-- **当前 Phase**：Phase 6（告警系统）
+- **当前 Phase**：Phase 7（设备控制）
 - **阻塞问题**：无
-- **下一步任务**：告警规则引擎 + 告警记录 + 告警中心页面
+- **下一步任务**：MQTT控制指令下发接口 + Vue3控制面板
 
 ---
 
@@ -74,22 +74,27 @@
 │           ├── dto/
 │           │   ├── ApiResult.java         # 统一响应 {code,message,data}
 │           │   ├── DeviceRegisterRequest.java
-│           │   └── SensorDataVO.java        # Phase 5: 传感器数据VO
+│           │   ├── SensorDataVO.java        # Phase 5: 传感器数据VO
+│           │   └── AlarmRecordVO.java       # Phase 6: 告警记录VO
 │           ├── entity/
 │           │   ├── Device.java
 │           │   ├── SensorData.java
 │           │   ├── DeviceHeartbeat.java
-│           │   └── DeviceEvent.java
-│           ├── mapper/                    # 4个 Mapper 接口
+│           │   ├── DeviceEvent.java
+│           │   ├── AlarmRecord.java         # Phase 6: 告警记录实体
+│           │   └── SystemConfig.java         # Phase 6: 系统配置实体
+│           ├── mapper/                    # 6个 Mapper 接口
 │           ├── service/
-│           │   ├── MqttSubscriberService.java  # MQTT订阅+入库+Redis
+│           │   ├── MqttSubscriberService.java  # MQTT订阅+入库+Redis+告警触发
 │           │   ├── DeviceService.java          # 设备CRUD
 │           │   ├── DeviceEventService.java     # 事件记录
-│           │   └── SensorDataService.java       # Phase 5: 传感器数据查询
+│           │   ├── SensorDataService.java       # Phase 5: 传感器数据查询
+│           │   └── AlarmService.java            # Phase 6: 告警规则引擎+记录
 │           ├── task/
-│           │   └── HeartbeatTimeoutTask.java   # 心跳超时检测（@Scheduled）
+│           │   └── HeartbeatTimeoutTask.java   # 心跳超时检测+离线告警（@Scheduled）
 │           └── controller/
-│               └── DeviceController.java       # 6个REST接口
+│               ├── DeviceController.java       # 6个REST接口
+│               └── AlarmController.java        # Phase 6: 告警列表+清除接口
 
 ├── smartbrew-web/                        # Phase 5: Vue3前端
 │   ├── index.html
@@ -102,7 +107,8 @@
 │       ├── api/index.js                  # Axios封装，4个API方法
 │       ├── views/
 │       │   ├── Dashboard.vue             # 实时监控面板（仪表盘+数据卡片+30s刷新）
-│       │   └── HistoryChart.vue          # 温湿度历史曲线（双Y轴+缩放）
+│       │   ├── HistoryChart.vue          # 温湿度历史曲线（双Y轴+缩放）
+│       │   └── AlarmCenter.vue           # Phase 6: 告警中心（筛选+表格+分页+清除）
 │       └── components/
 │           ├── DeviceStatusCard.vue       # 设备信息卡片
 │           └── TempHumidityGauge.vue      # ECharts 仪表盘组件
@@ -127,6 +133,8 @@
 | PUT | `/api/device/{deviceId}` | 4 | 更新设备信息 |
 | GET | `/api/device/latest` | 5 | 设备最新传感器数据（Redis+DB fallback） |
 | GET | `/api/device/history` | 5 | 设备历史传感器数据（分页） |
+| GET | `/api/alarm/list` | 6 | 告警列表（分页+筛选） |
+| PUT | `/api/alarm/{alarmId}/clear` | 6 | 手动清除告警 |
 
 ---
 
@@ -204,6 +212,27 @@
 
 **明日计划：**
 - [ ] 开始 Phase 6：告警系统（告警规则引擎 + 告警记录 + 告警中心页面）
+
+---
+
+### 2026-06-17（第3天 — Phase 6 已完成）
+
+**完成事项：**
+- [x] **Phase 6**：告警系统（实际此前已写完代码，今日完成文档更新与提交）
+  - [x] 6.1 告警规则引擎 — `AlarmService.java`（高温/低温/离线判定 + 判重 + 自动清除）
+  - [x] 6.2 告警记录API — `AlarmController.java`（GET /api/alarm/list 分页筛选 + PUT /api/alarm/{id}/clear 手动清除）
+  - [x] 6.3 Vue3 告警中心页面 — `AlarmCenter.vue`（筛选栏 + 彩色标签表格 + 分页 + 清除操作 + 30s轮询）
+  - [x] 新增后端文件：`AlarmRecord.java`, `AlarmRecordVO.java`, `AlarmRecordMapper.java`, `AlarmService.java`, `AlarmController.java`, `SystemConfig.java`, `SystemConfigMapper.java`
+  - [x] 修改 `MqttSubscriberService.java`：传感器数据入库后触发 `alarmService.checkTemperature()`
+  - [x] 修改 `HeartbeatTimeoutTask.java`：离线检测时触发 `alarmService.checkOffline()`
+  - [x] 修改前端 `App.vue` / `router/index.js` / `api/index.js`：新增告警中心路由与API
+
+**Git 提交：** 待提交
+
+**遇到的问题：** 无
+
+**明日计划：**
+- [ ] 开始 Phase 7：设备控制（MQTT指令下发 + Vue3控制面板）
 
 ---
 
