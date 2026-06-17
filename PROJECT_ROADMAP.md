@@ -2,7 +2,7 @@
 
 > **最后更新**：2026-06-17
 > **配套文件**：`PROJECT_STATUS.md`（每日进度日志）
-> **下次恢复**：当前进度 9/11 Phase，下一步是 Phase 10（知识库）
+> **下次恢复**：项目全部 11 个 Phase 已完成
 
 ---
 
@@ -39,8 +39,8 @@
 | 7 | 设备控制 | ✅ 已完成 | 2026-06-17 | 2/2 |
 | 8 | 自动温控 | ✅ 已完成 | 2026-06-17 | 2/2 |
 | 9 | AI分析 | ✅ 已完成 | 2026-06-17 | 3/3 |
-| 10 | 知识库 | ⬜ 未开始 | - | 0/3 |
-| 11 | Docker部署 | ⬜ 未开始 | - | 0/6 |
+| 10 | 知识库 | ✅ 已完成 | 2026-06-17 | 3/3 |
+| 11 | Docker部署 | ✅ 已完成 | 2026-06-17 | 6/6 |
 
 > 图例：⬜ 未开始 | 🔄 进行中 | ✅ 已完成 | ⏸️ 暂停
 
@@ -57,6 +57,8 @@
 | 7 | MQTT控制指令下发 + Vue3控制面板 | `ControlService.java` + `ControlController.java` + `ControlPanel.vue` |
 | 8 | 自动温控规则引擎 + ESP32 GPIO反馈 | `TemperatureControlService.java` + `mqtt_handler.cpp` |
 | 9 | DeepSeek API 封装 + AI 分析存储/查询 + Vue3 展示 | `AiService.java` + `AiController.java` + `AiAnalysis.vue` |
+| 10 | 知识库 Markdown + 问答接口 + Vue3 聊天页面 | `KnowledgeBaseService.java` + `KnowledgeController.java` + `KnowledgeBase.vue` |
+| 11 | Docker Compose 6 服务编排 + Nginx 反向代理 | `Dockerfile` ×2 + `docker-compose.yml` + `deploy.sh` |
 
 ---
 
@@ -254,30 +256,31 @@ Phase 9：AI分析 &nbsp; ✅ 已完成
 
 ---
 
-Phase 10：知识库 &nbsp; ⬜ 未开始
+Phase 10：知识库 &nbsp; ✅ 已完成
 
 > **完成标准**：支持发酵知识问答，AI 返回建议。
 
 | # | 子任务 | 状态 |
 |:-:|--------|:--:|
-| 10.1 | 编写知识库 Markdown 文件（apple_wine / rice_wine / grape_wine） | [ ] |
-| 10.2 | 知识库检索 + DeepSeek 问答接口 | [ ] |
-| 10.3 | Vue3 知识库问答页面 | [ ]
+| 10.1 | 编写知识库 Markdown 文件（apple_wine / rice_wine / grape_wine） | [x] |
+| 10.2 | 知识库检索 + DeepSeek 问答接口 | [x] |
+| 10.3 | Vue3 知识库问答页面 | [x]
 
 ---
 
-Phase 11：Docker部署 &nbsp; ⬜ 未开始
+Phase 11：Docker部署 &nbsp; ✅ 已完成
 
-> **完成标准**：docker-compose 一键启动全部服务。
+> **目标**：docker-compose 一键启动全部服务。
+> **完成标准**：docker-compose up -d 一键启动全部 6 个服务。
 
 | # | 子任务 | 状态 |
 |:-:|--------|:--:|
-| 11.1 | Spring Boot Dockerfile | [ ] |
-| 11.2 | Vue3 Nginx Dockerfile | [ ] |
-| 11.3 | docker-compose.yml（Nginx + Vue + Spring Boot + MySQL + Redis + EMQX） | [ ] |
-| 11.4 | MySQL 初始化 SQL 自动挂载 | [ ] |
-| 11.5 | 环境变量管理（.env 文件） | [ ] |
-| 11.6 | 部署文档 + 一键启动脚本 | [ ]
+| 11.1 | Spring Boot Dockerfile（多阶段 Maven build + JRE run） | [x] |
+| 11.2 | Vue3 Nginx Dockerfile（多阶段 Node build + Nginx serve + 反向代理） | [x] |
+| 11.3 | docker-compose.yml（Nginx + Spring Boot + MySQL + Redis + EMQX） | [x] |
+| 11.4 | MySQL 初始化 SQL 自动挂载（schema.sql → docker-entrypoint-initdb.d） | [x] |
+| 11.5 | 环境变量管理（.env + application.yml 占位符） | [x] |
+| 11.6 | 部署文档 + 一键启动脚本（DEPLOY.md + deploy.sh） | [x]
 
 ---
 

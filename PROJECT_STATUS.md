@@ -19,8 +19,8 @@
 | 7 | 设备控制 | ✅ 已完成 | 2026-06-17 |
 | 8 | 自动温控 | ✅ 已完成 | 2026-06-17 |
 | 9 | AI分析 | ✅ 已完成 | 2026-06-17 |
-| 10 | 知识库 | ⬜ 未开始 | - |
-| 11 | Docker部署 | ⬜ 未开始 | - |
+| 10 | 知识库 | ✅ 已完成 | 2026-06-17 |
+| 11 | Docker部署 | ✅ 已完成 | 2026-06-17 |
 
 > 图例：⬜ 未开始 | 🔄 进行中 | ✅ 已完成 | ⏸️ 暂停
 
@@ -28,9 +28,9 @@
 
 ## 当前状态
 
-- **当前 Phase**：Phase 10（知识库）
+- **当前 Phase**：全部 11 个 Phase 已完成
 - **阻塞问题**：无
-- **下一步任务**：编写知识库Markdown文件 + 知识库检索 + DeepSeek问答接口
+- **下一步任务**：系统测试与验证
 
 ---
 
@@ -60,6 +60,7 @@
 │       └── mqtt_handler.h / .cpp         # MQTT 连接+JSON上报+心跳
 │
 ├── smartbrew-server/                    # Phase 2-4: Spring Boot后端
+│   ├── Dockerfile                        # Phase 11: 多阶段构建（Maven + JRE）
 │   ├── pom.xml
 │   └── src/main/
 │       ├── resources/
@@ -111,6 +112,8 @@
 │               └── AiController.java           # Phase 9: AI分析REST API
 
 ├── smartbrew-web/                        # Phase 5: Vue3前端
+│   ├── Dockerfile                        # Phase 11: Node + Nginx 多阶段构建
+│   ├── nginx.conf                        # Phase 11: 反向代理配置
 │   ├── index.html
 │   ├── package.json
 │   ├── vite.config.js                    # Dev Server:3000 + proxy → :8080
@@ -129,6 +132,10 @@
 │           ├── DeviceStatusCard.vue       # 设备信息卡片
 │           └── TempHumidityGauge.vue      # ECharts 仪表盘组件
 │
+├── docker-compose.yml                   # Phase 11: 6 服务编排
+├── .env                                  # Phase 11: 环境变量模板
+├── deploy.sh                             # Phase 11: 一键部署脚本
+├── DEPLOY.md                             # Phase 11: 部署文档
 ├── PROJECT_ROADMAP.md                   # 11个Phase路线图
 ├── PROJECT_STATUS.md                    # 本文件
 ├── 功能需求列表.md                       # F001~F028 完整规格
@@ -358,12 +365,79 @@
 | `App.vue` | 新增 "AI 分析" 菜单项 |
 
 **Git 提交：**
-- 待提交
+- feat: Phase 10 知识库问答系统
 
 **遇到的问题：** 无
 
 **明日计划：**
-- [ ] 开始 Phase 10：知识库
+- [ ] 开始 Phase 11：Docker 部署
+
+---
+
+### 2026-06-17（第10天）
+
+**完成事项：**
+- [x] Phase 10 知识库完整实现
+  - [x] 编写 3 个知识库 Markdown 文件（apple_wine / rice_wine / grape_wine），各约 3KB
+  - [x] 创建 KnowledgeBaseService，@PostConstruct 加载知识到内存
+  - [x] 创建 KnowledgeController，POST /api/knowledge/ask 端点
+  - [x] 创建 KnowledgeBase.vue，类 ChatGPT 聊天布局
+  - [x] 前端集成：api/index.js、router/index.js、App.vue 菜单
+  - [x] 更新文档：PROJECT_ROADMAP.md、PROJECT_STATUS.md、防失忆工作流程.md
+
+**新增文件：**
+- `resources/knowledge/apple_wine.md`（苹果酒/梅酒知识）
+- `resources/knowledge/rice_wine.md`（米酒/甜酒酿知识）
+- `resources/knowledge/grape_wine.md`（葡萄酒知识）
+- `service/KnowledgeBaseService.java`（知识库加载+问答服务）
+- `controller/KnowledgeController.java`（POST /api/knowledge/ask）
+- `views/KnowledgeBase.vue`（Vue3 聊天式问答页面）
+
+**修改文件：**
+- `api/index.js`（新增 askKnowledge 函数）
+- `router/index.js`（新增 /knowledge 路由）
+- `App.vue`（新增 "知识库" 菜单）
+- `PROJECT_ROADMAP.md`（Phase 10 ✅）
+- `PROJECT_STATUS.md`（当日日志）
+- `防失忆工作流程.md`（进度 10/11）
+
+---
+
+### 2026-06-17（第3天续4 — Phase 11 完成）
+
+**完成事项：**
+- [x] **Phase 11**：Docker 部署
+  - [x] 11.1 Spring Boot 多阶段 Dockerfile（maven:3.9-eclipse-temurin-21-alpine → eclipse-temurin:21-jre-alpine + actuator 健康检查）
+  - [x] 11.2 Vue3 + Nginx 多阶段 Dockerfile（node:18-alpine → nginx:alpine + 反向代理配置）
+  - [x] 11.3 docker-compose.yml（6 服务编排：Nginx + Spring Boot + MySQL + Redis + EMQX + smartbrew-net 网络）
+  - [x] 11.4 MySQL 初始化 SQL 自动挂载（schema.sql → /docker-entrypoint-initdb.d/）
+  - [x] 11.5 环境变量管理（.env + application.yml 占位符改造：MYSQL_HOST/REDIS_HOST/MQTT_HOST）
+  - [x] 11.6 部署文档 + 一键启动脚本（DEPLOY.md + deploy.sh）
+
+**新增文件（7个）：**
+| 文件 | 说明 |
+|------|------|
+| `smartbrew-server/Dockerfile` | Spring Boot 多阶段构建（Maven + JRE） |
+| `smartbrew-web/Dockerfile` | Vue3 + Nginx 多阶段构建（Node + Nginx） |
+| `smartbrew-web/nginx.conf` | Nginx 反向代理（SPA + /api/ + /ws/） |
+| `docker-compose.yml` | 6 服务编排（mysql/redis/emqx/server/nginx） |
+| `.env` | 环境变量模板（DEEPSEEK_API_KEY 等） |
+| `deploy.sh` | 一键部署脚本 |
+| `DEPLOY.md` | 部署指南（环境要求 + 启动步骤 + 故障排查） |
+
+**修改文件（3个）：**
+| 文件 | 变更 |
+|------|------|
+| `application.yml` | localhost → 环境变量占位符（MySQL/Redis/MQTT） |
+| `pom.xml` | 新增 spring-boot-starter-actuator 依赖（Docker 健康检查） |
+| `PROJECT_ROADMAP.md` | Phase 11 ✅ 已完成，项目全部 11/11 Phase 完成 |
+| `PROJECT_STATUS.md` | 当日日志 + 项目结构更新 |
+| `防失忆工作流程.md` | 进度 11/11，更新"下一步" |
+
+**Git 提交：**
+- 待提交
+
+**遇到的问题：** 无
 
 ---
 
