@@ -1,0 +1,148 @@
+# ============================================================
+# Smart Brew AI — Docker Compose 编排
+# 一键启动 6 个服务：
+#   nginx (80) → Vue 前端 + 反向代理
+#   server (8080) → Spring Boot 后端
+#   mysql (3306) → 数据持久化
+#   redis (6379) → 缓存
+#   emqx (1883/18083) → MQTT Broker
+# ============================================================
+
+version: "3.8"
+
+services:
+  # ---- MySQL 8 ----
+  mysql:
+    image: mysql:8.0
+    container_name: smartbrew-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: smartbrew
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./smartbrew-server/src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - smartbrew-net
+
+  # ---- Redis 7 ----
+  redis:
+    image: redis:7-alpine
+    container_name: smartbrew-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartbrew-net
+
+  # ---- EMQX 5 ----
+  emqx:
+    image: emqx/emqx:5
+    container_name: smartbrew-emqx
+    restart: unless-stopped
+    environment:
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: ${EMQX_DASHBOARD_PASSWORD:-admin}
+      EMQX_MQTT__MAX_PACKET_SIZE: 10MB
+      TZ: Asia/Shanghai
+    ports:
+      - "1883:1883"     # MQTT
+      - "8083:8083"     # WebSocket
+      - "18083:18083"   # Dashboard
+    volumes:
+      - emqx_data:/opt/emqx/data
+      - emqx_log:/opt/emqx/log
+    healthcheck:
+      test: ["CMD", "/opt/emqx/bin/emqx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - smartbrew-net
+
+  # ---- Spring Boot 后端 ----
+  server:
+    build:
+      context: ./smartbrew-server
+      dockerfile: Dockerfile
+    container_name: smartbrew-server
+    restart: unless-stopped
+    environment:
+      # 数据库
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # MQTT
+      MQTT_HOST: emqx
+      MQTT_PORT: 1883
+      # AI
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-sk-your-api-key-here}
+      # JVM
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      emqx:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    networks:
+      - smartbrew-net
+
+  # ---- Nginx 前端 + 反向代理 ----
+  nginx:
+    build:
+      context: ./smartbrew-web
+      dockerfile: Dockerfile
+    container_name: smartbrew-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - smartbrew-net
+
+# ---- 数据卷 ----
+volumes:
+  mysql_data:
+  redis_data:
+  emqx_data:
+  emqx_log:
+
+# ---- 网络 ----
+networks:
+  smartbrew-net:
+    driver: bridge
+    name: smartbrew-net

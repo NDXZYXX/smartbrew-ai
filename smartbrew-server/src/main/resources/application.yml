@@ -8,9 +8,9 @@ spring:
   # MySQL 数据源
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/smartbrew?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
-    username: root
-    password: root
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/smartbrew?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:root}
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
       initial-size: 5
@@ -20,8 +20,8 @@ spring:
   # Redis
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
       password:
       timeout: 3000ms
       lettuce:
@@ -50,7 +50,7 @@ mybatis-plus:
 
 # MQTT 配置
 mqtt:
-  broker-url: tcp://localhost:1883
+  broker-url: tcp://${MQTT_HOST:localhost}:${MQTT_PORT:1883}
   client-id: smartbrew_server_001
   username: smartbrew
   password: smartbrew2024
@@ -68,6 +68,15 @@ ai:
     api-key: ${DEEPSEEK_API_KEY:sk-your-api-key-here}
     base-url: https://api.deepseek.com
     model: deepseek-chat
+
+# SpringDoc OpenAPI
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
 
 # 日志
 logging:
