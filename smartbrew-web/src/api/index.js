@@ -27,3 +27,7 @@ export const getAlarmList = (params) => http.get('/alarm/list', { params })
 export const clearAlarm = (alarmId) => http.put(`/alarm/${alarmId}/clear`)
 
 export const sendControl = (deviceId, data) => http.post(`/device/${deviceId}/control`, data)
+
+export const triggerAiAnalysis = (data) => http.post('/ai/analyze', data)
+export const getAiAnalysisList = (params) => http.get('/ai/list', { params })
+export const getAiAnalysisDetail = (id) => http.get(`/ai/${id}`)

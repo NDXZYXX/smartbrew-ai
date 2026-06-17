@@ -62,6 +62,13 @@ mqtt:
   keep-alive-interval: 60
   connection-timeout: 30
 
+# AI 分析配置 (DeepSeek)
+ai:
+  deepseek:
+    api-key: ${DEEPSEEK_API_KEY:sk-your-api-key-here}
+    base-url: https://api.deepseek.com
+    model: deepseek-chat
+
 # 日志
 logging:
   level:

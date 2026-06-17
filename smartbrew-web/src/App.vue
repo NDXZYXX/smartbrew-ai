@@ -14,6 +14,7 @@
         <el-menu-item index="/history">历史曲线</el-menu-item>
         <el-menu-item index="/alarms">告警中心</el-menu-item>
         <el-menu-item index="/control">设备控制</el-menu-item>
+        <el-menu-item index="/ai">AI 分析</el-menu-item>
       </el-menu>
     </el-header>
     <el-main style="background: #f3f4f6; padding: 20px">
