@@ -246,6 +246,33 @@ public class MqttSubscriberService implements CommandLineRunner {
         }
     }
 
+    // ---- MQTT 发布（用于设备控制下发） ----
+
+    /**
+     * 向设备下发控制指令
+     * @param deviceId 设备ID
+     * @param target 控制目标 (FAN/HEATER)
+     * @param command 指令 (ON/OFF)
+     * @param timestamp 时间戳
+     * @return MQTT 消息ID
+     */
+    public String publishControl(String deviceId, String target, String command, long timestamp) throws MqttException {
+        String topic = "smartbrew/device/" + deviceId + "/control";
+        String payload = String.format(
+                "{\"target\":\"%s\",\"command\":\"%s\",\"timestamp\":%d}",
+                target, command, timestamp);
+
+        MqttMessage msg = new MqttMessage(payload.getBytes());
+        msg.setQos(1);
+        msg.setRetained(false);
+
+        client.publish(topic, msg);
+        log.info("MQTT控制指令下发: topic={} payload={}", topic, payload);
+
+        // 返回 MQTT 内部 messageId（int → String）
+        return String.valueOf(msg.getId());
+    }
+
     // ---- Redis 缓存 ----
 
     private void cacheLatestSensorData(String deviceId, SensorData data) {
