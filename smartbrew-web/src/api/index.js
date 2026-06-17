@@ -25,3 +25,5 @@ export const getDeviceDetail = (deviceId) => http.get(`/device/${deviceId}`)
 
 export const getAlarmList = (params) => http.get('/alarm/list', { params })
 export const clearAlarm = (alarmId) => http.put(`/alarm/${alarmId}/clear`)
+
+export const sendControl = (deviceId, data) => http.post(`/device/${deviceId}/control`, data)
